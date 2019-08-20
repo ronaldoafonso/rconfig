@@ -4,13 +4,15 @@
 package rconfig
 
 type boxConfig struct {
-	ssid string
+	ssid        string
+	allowedMacs []string
 }
 
 /* Initialize and return a boxConfig structure */
-func initBoxConfig(ssid string) boxConfig {
+func initBoxConfig(ssid string, allowedMacs []string) boxConfig {
 	return boxConfig{
-		ssid: ssid,
+		ssid:        ssid,
+		allowedMacs: allowedMacs,
 	}
 }
 
@@ -19,10 +21,26 @@ func (config boxConfig) isIgual(other boxConfig) bool {
 	if config.ssid != other.ssid {
 		return false
 	}
+
+	if len(config.allowedMacs) != len(other.allowedMacs) {
+		return false
+	}
+
+	for i, value := range config.allowedMacs {
+		if value != other.allowedMacs[i] {
+			return false
+		}
+	}
+
 	return true
 }
 
 /* Update field "ssid" of boxConfig structure */
-func (config *boxConfig) upDateSsid(ssid string) {
+func (config *boxConfig) updateSsid(ssid string) {
 	config.ssid = ssid
+}
+
+/* Update field "allowedMacs" of boxConfig structure */
+func (config *boxConfig) updateAllowedMacs(allowedMacs []string) {
+	config.allowedMacs = allowedMacs
 }
