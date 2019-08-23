@@ -5,29 +5,38 @@ package rconfig
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
 )
 
-type remoteBox struct {
+type Box struct {
 	boxname string
 	config  boxConfig
 }
 
 /* Init a remote box struct. */
-func initBox(boxname string) remoteBox {
-	return remoteBox{
-		boxname: boxname,
-		config:  boxConfig{},
+func initBox() Box {
+	return Box{}
+}
+
+/* Load config from file. */
+// TODO: It should be done with a database.
+func (b *Box) loadConfig() error {
+	b.boxname = "boxname"
+	b.config = initBoxConfig()
+	b.config.ssid = "ssid"
+	b.config.allowedMacs = []string{
+		"11:11:11:11:11:11",
+		"22:22:22:22:22:22",
 	}
+	return nil
 }
 
 /* Get remote SSID of box */
-func (box remoteBox) getRemoteSsid() string {
+func (b *Box) getRemoteSsid() (string, error) {
 	cmd := exec.Command(
 		"ssh",
-		boxname,
+		b.boxname,
 		"uci",
 		"get",
 		"wireless.@wifi-iface[0].ssid",
@@ -35,28 +44,28 @@ func (box remoteBox) getRemoteSsid() string {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	defer stdout.Close()
 
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	buffer := make([]byte, 32)
 	nRead, err := stdout.Read(buffer)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return fmt.Sprintf("%v", string(buffer[:nRead-1]))
+	return fmt.Sprintf("%v", string(buffer[:nRead-1])), nil
 }
 
 /* Get remote allowed MACs of box */
-func (box remoteBox) getRemoteAllowedMacs() []string {
+func (b Box) getRemoteAllowedMacs() ([]string, error) {
 	cmd := exec.Command(
 		"ssh",
-		boxname,
+		b.boxname,
 		"uci",
 		"get",
 		"firewall.macs.entry",
@@ -64,19 +73,19 @@ func (box remoteBox) getRemoteAllowedMacs() []string {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil
 	}
 	defer stdout.Close()
 
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		return nil, nil
 	}
 
 	buffer := make([]byte, 1024)
 	nRead, err := stdout.Read(buffer)
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil
 	}
 
-	return strings.Split(string(buffer[:nRead-1]), " ")
+	return strings.Split(string(buffer[:nRead-1]), " "), nil
 }

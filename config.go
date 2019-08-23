@@ -9,11 +9,8 @@ type boxConfig struct {
 }
 
 /* Initialize and return a boxConfig structure */
-func initBoxConfig(ssid string, allowedMacs []string) boxConfig {
-	return boxConfig{
-		ssid:        ssid,
-		allowedMacs: allowedMacs,
-	}
+func initBoxConfig() boxConfig {
+	return boxConfig{}
 }
 
 /* Return false if other is different from config. */

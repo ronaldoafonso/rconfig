@@ -9,43 +9,78 @@ import (
 )
 
 var (
-	boxname = "boxname"
+	boxname          = "boxname"
+	otherIgualConfig = boxConfig{
+		ssid: "ssid",
+		allowedMacs: []string{
+			"11:11:11:11:11:11",
+			"22:22:22:22:22:22",
+		},
+	}
 )
 
 func TestInitBox(t *testing.T) {
-	box := initBox(boxname)
+	box := initBox()
 
-	if reflect.TypeOf(box) != reflect.TypeOf(remoteBox{}) {
-		t.Errorf("initBox didn't return a remoteBox type.")
+	if reflect.TypeOf(box) != reflect.TypeOf(Box{}) {
+		t.Errorf("initBox didn't return a Box type.")
+	}
+
+	if box.boxname != "" {
+		t.Errorf("initBox: boxname must be an empty string.")
+	}
+
+	if reflect.TypeOf(box.config) != reflect.TypeOf(boxConfig{}) {
+		t.Errorf("initBox: config must be a boxConfig type.")
+	}
+}
+
+func TestLoadBoxConfigOk(t *testing.T) {
+	box := initBox()
+	err := box.loadConfig()
+
+	if err != nil {
+		t.Errorf("loadConfig: Got an error [%v].", err)
 	}
 
 	if box.boxname != boxname {
-		t.Errorf("initBox didn't set boxname. Want: %v, got: %v.",
+		t.Errorf("loadConfig: Didn't set boxname. Want: %v, got: %v.",
 			boxname, box.boxname)
 	}
 
-	if !box.config.isIgual(boxConfig{}) {
-		t.Errorf("initBox didn't set an empty boxConfig struct.")
+	if !box.config.isIgual(otherIgualConfig) {
+		t.Errorf("loadConfig: Didn't set config. Want: %v, got: %v.",
+			otherIgualConfig, box.config)
 	}
 }
 
 func TestGetRemoteBoxSsid(t *testing.T) {
-	box := initBox(boxname)
-	ssid := box.getRemoteSsid()
+	box := initBox()
+	box.loadConfig()
+	ssid, err := box.getRemoteSsid()
+
+	if err != nil {
+		t.Errorf("getRemoteSsid: Got an error [%v].", err)
+	}
 
 	if ssid != "ssid" {
-		t.Errorf("getRemoteSsid error. Want: %v, got: %v.", "ssid", ssid)
+		t.Errorf("getRemoteSsid: Want: %v, got: %v.", "ssid", ssid)
 	}
 }
 
 func TestGetRemoteAllowedMacs(t *testing.T) {
-	box := initBox(boxname)
+	box := initBox()
+	box.loadConfig()
 	allowedMacsWanted := []string{
 		"11:11:11:11:11:11",
 		"22:22:22:22:22:22",
 	}
 
-	allowedMacs := box.getRemoteAllowedMacs()
+	allowedMacs, err := box.getRemoteAllowedMacs()
+
+	if err != nil {
+		t.Errorf("getRemoteAllowedMacs: Got an error [%v].", err)
+	}
 
 	if len(allowedMacs) == 0 {
 		t.Errorf("getRemoteAllowedMacs returned an empty list of MACs.")

@@ -17,27 +17,26 @@ var (
 )
 
 func TestInitBoxConfig(t *testing.T) {
-	config := initBoxConfig(ssid, allowedMacs)
+	config := initBoxConfig()
 
 	if reflect.TypeOf(config) != reflect.TypeOf(boxConfig{}) {
 		t.Errorf("initBoxConfig didn't return a boxConfig type.")
 	}
 
-	if config.ssid != ssid {
-		t.Errorf("initBoxConfig didn't set ssid. Want: %v, got: %v.",
-			ssid, config.ssid)
+	if config.ssid != "" {
+		t.Errorf("initBoxConfig: ssid must be an empty string.")
 	}
 
-	for i := range allowedMacs {
-		if config.allowedMacs[i] != allowedMacs[i] {
-			t.Error("initBoxConfig didn't set allowedMacs correctly. "+
-				"Want: %v, got: %v.", allowedMacs[i], config.allowedMacs[i])
-		}
+	if config.allowedMacs != nil {
+		t.Errorf("initBoxConfig: allowedMacs must be nil.")
 	}
 }
 
-func TestIsIgual(t *testing.T) {
-	config := initBoxConfig(ssid, allowedMacs)
+func TestBoxConfigIsIgual(t *testing.T) {
+	config := initBoxConfig()
+	config.ssid = ssid
+	config.allowedMacs = allowedMacs
+
 	otherIgual := boxConfig{
 		ssid:        ssid,
 		allowedMacs: allowedMacs,
@@ -84,8 +83,8 @@ func TestIsIgual(t *testing.T) {
 	}
 }
 
-func TestUpDateSsid(t *testing.T) {
-	config := initBoxConfig(ssid, allowedMacs)
+func TestBoxConfigUpDateSsid(t *testing.T) {
+	config := initBoxConfig()
 	otherSsid := "other ssid"
 	config.updateSsid(otherSsid)
 
@@ -96,7 +95,8 @@ func TestUpDateSsid(t *testing.T) {
 }
 
 func TestUpDateAllowedMacs(t *testing.T) {
-	config := initBoxConfig(ssid, allowedMacs)
+	config := initBoxConfig()
+
 	otherAllowedMacs := append(allowedMacs, "33:33:33:33:33:33")
 	config.updateAllowedMacs(otherAllowedMacs)
 
