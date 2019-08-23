@@ -34,58 +34,49 @@ func (b *Box) loadConfig() error {
 
 /* Get remote SSID of box */
 func (b *Box) getRemoteSsid() (string, error) {
-	cmd := exec.Command(
-		"ssh",
-		b.boxname,
-		"uci",
-		"get",
-		"wireless.@wifi-iface[0].ssid",
-	)
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return "", err
-	}
-	defer stdout.Close()
-
-	if err := cmd.Start(); err != nil {
-		return "", err
-	}
-
-	buffer := make([]byte, 32)
-	nRead, err := stdout.Read(buffer)
+	buffer, err := b.execRemoteUCIGet("wireless.@wifi-iface[0].ssid")
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%v", string(buffer[:nRead-1])), nil
+	return fmt.Sprintf("%v", string(buffer)), nil
 }
 
 /* Get remote allowed MACs of box */
 func (b Box) getRemoteAllowedMacs() ([]string, error) {
+	buffer, err := b.execRemoteUCIGet("firewall.macs.entry")
+	if err != nil {
+		return nil, nil
+	}
+
+	return strings.Split(string(buffer), " "), nil
+}
+
+/* Execute remote UCI command */
+func (b Box) execRemoteUCIGet(param string) ([]byte, error) {
 	cmd := exec.Command(
 		"ssh",
 		b.boxname,
 		"uci",
 		"get",
-		"firewall.macs.entry",
+		param,
 	)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	defer stdout.Close()
 
 	if err := cmd.Start(); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	buffer := make([]byte, 1024)
 	nRead, err := stdout.Read(buffer)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
-	return strings.Split(string(buffer[:nRead-1]), " "), nil
+	return buffer[:nRead-1], nil
 }
