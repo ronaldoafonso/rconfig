@@ -3,28 +3,23 @@
 
 package rconfig
 
-type boxConfig struct {
-	ssid        string
-	allowedMacs []string
-}
-
-/* Initialize and return a boxConfig structure */
-func initBoxConfig() boxConfig {
-	return boxConfig{}
+type Config struct {
+	SSID        string
+	allowedMACs []string
 }
 
 /* Return false if other is different from config. */
-func (config boxConfig) isIgual(other boxConfig) bool {
-	if config.ssid != other.ssid {
+func (config Config) isIgual(other Config) bool {
+	if config.SSID != other.SSID {
 		return false
 	}
 
-	if len(config.allowedMacs) != len(other.allowedMacs) {
+	if len(config.allowedMACs) != len(other.allowedMACs) {
 		return false
 	}
 
-	for i, value := range config.allowedMacs {
-		if value != other.allowedMacs[i] {
+	for i, value := range config.allowedMACs {
+		if value != other.allowedMACs[i] {
 			return false
 		}
 	}
@@ -32,12 +27,12 @@ func (config boxConfig) isIgual(other boxConfig) bool {
 	return true
 }
 
-/* Update field "ssid" of boxConfig structure */
-func (config *boxConfig) updateSsid(ssid string) {
-	config.ssid = ssid
+/* Update field "SSID" of Config structure */
+func (config *Config) updateSSID(SSID string) {
+	config.SSID = SSID
 }
 
-/* Update field "allowedMacs" of boxConfig structure */
-func (config *boxConfig) updateAllowedMacs(allowedMacs []string) {
-	config.allowedMacs = allowedMacs
+/* Update field "allowedMACs" of Config structure */
+func (config *Config) updateAllowedMACs(allowedMACs []string) {
+	config.allowedMACs = allowedMACs
 }
