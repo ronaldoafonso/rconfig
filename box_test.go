@@ -44,6 +44,21 @@ func TestBoxLoadConfig(t *testing.T) {
 	}
 }
 
+func TestGetRemoteSSID(t *testing.T) {
+	box := Box{}
+	box.setBoxname("boxname")
+	box.loadConfig()
+	box.SSID = "other ssid"
+
+	if err := box.getRemoteSSID(); err != nil {
+		t.Errorf("getRemoteSSID: Got an error [%v].", err)
+	}
+
+	if box.SSID != "ssid" {
+		t.Errorf("getRemoteSSID: Want: %v, got: %v.", "ssid", box.SSID)
+	}
+}
+
 func TestSetRemoteSSID(t *testing.T) {
 	box := Box{}
 	box.setBoxname("boxname")
@@ -54,7 +69,32 @@ func TestSetRemoteSSID(t *testing.T) {
 	}
 }
 
-func TestSetRemoteAllowedMacs(t *testing.T) {
+func TestGetRemoteAllowedMACs(t *testing.T) {
+	box := Box{}
+	box.setBoxname("boxname")
+	box.loadConfig()
+	box.allowedMACs = []string{
+		"aa:aa:aa:aa:aa:aa",
+		"bb:bb:bb:bb:bb:bb",
+	}
+
+	if err := box.getRemoteAllowedMACs(); err != nil {
+		t.Errorf("getRemoteAllowedMACs: Got an error [%v].", err)
+	}
+
+	MAC1 := "11:11:11:11:11:11"
+	MAC2 := "22:22:22:22:22:22"
+
+	if box.allowedMACs[0] != MAC1 {
+		t.Errorf("getRemoteAllowedMACs. Want: %v, got: %v.", MAC1, box.allowedMACs[0])
+	}
+
+	if box.allowedMACs[1] != MAC2 {
+		t.Errorf("getRemoteAllowedMACs. Want: %v, got: %v.", MAC2, box.allowedMACs[1])
+	}
+}
+
+func TestSetRemoteAllowedMACs(t *testing.T) {
 	box := Box{}
 	box.setBoxname("boxname")
 	box.loadConfig()

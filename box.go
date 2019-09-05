@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Box ... An OpenWrt box struct
 type Box struct {
 	boxname string
 	Config
@@ -30,6 +31,25 @@ func (b *Box) loadConfig() error {
 	return nil
 }
 
+/* Get remote box SSID */
+func (b *Box) getRemoteSSID() error {
+	uci := []string{
+		b.boxname,
+		"uci",
+		"-q",
+		"get",
+		"wireless.@wifi-iface[0].ssid",
+	}
+
+	SSID, err := exec.Command("ssh", uci...).Output()
+	if err != nil {
+		return err
+	}
+
+	b.SSID = string(SSID[:len(SSID)-1])
+	return nil
+}
+
 /* Set remote box SSID */
 func (b Box) setRemoteSSID() error {
 	SSID24 := fmt.Sprintf("wireless.@wifi-iface[0].ssid=%s", b.SSID)
@@ -43,6 +63,29 @@ func (b Box) setRemoteSSID() error {
 	}
 
 	return exec.Command("ssh", uci...).Run()
+}
+
+/* Get remote box allowed MACs */
+func (b *Box) getRemoteAllowedMACs() error {
+	uci := []string{
+		b.boxname,
+		"uci",
+		"-q",
+		"get",
+		"firewall.macs.entry",
+	}
+
+	MACs, err := exec.Command("ssh", uci...).Output()
+	if err != nil {
+		return err
+	}
+
+	b.allowedMACs = []string{}
+	for _, MAC := range strings.Split(string(MACs[:len(MACs)-1]), " ") {
+		b.allowedMACs = append(b.allowedMACs, MAC)
+	}
+
+	return nil
 }
 
 /* Set remote box allowed MACs */

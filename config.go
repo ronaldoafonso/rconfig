@@ -3,6 +3,7 @@
 
 package rconfig
 
+// Config ... Configuration parameters for an OpenWrt box
 type Config struct {
 	SSID        string
 	allowedMACs []string
