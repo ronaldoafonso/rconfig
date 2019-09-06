@@ -4,10 +4,29 @@
 package rconfig
 
 import (
+	"database/sql"
 	"fmt"
+	// PostgreSQL driver
+	_ "github.com/lib/pq"
+	"log"
 	"os/exec"
 	"strings"
 )
+
+var (
+	rconfigDb *sql.DB
+)
+
+// init box database
+func init() {
+	connString := "user=rconfig dbname=rconfig password=rconfig " +
+		"host=rconfig_db sslmode=disable"
+	if db, err := sql.Open("postgres", connString); err != nil {
+		log.Fatal(err)
+	} else {
+		rconfigDb = db
+	}
+}
 
 // Box ... An OpenWrt box struct
 type Box struct {
@@ -21,13 +40,17 @@ func (b *Box) setBoxname(boxname string) {
 }
 
 /* Load config from file. */
-// TODO: It should be done with a database.
 func (b *Box) loadConfig() error {
-	b.SSID = "ssid"
-	b.allowedMACs = []string{
-		"11:11:11:11:11:11",
-		"22:22:22:22:22:22",
+	query := fmt.Sprintf("SELECT cfg.ssid, cfg.allowed_macs FROM configs cfg INNER JOIN boxes box USING(config_id) WHERE box.boxname = '%s';", b.boxname)
+	var SSID, allowedMACs string
+
+	err := rconfigDb.QueryRow(query).Scan(&SSID, &allowedMACs)
+	if err != nil {
+		return err
 	}
+
+	b.SSID = SSID
+	b.allowedMACs = strings.Split(strings.TrimRight(strings.TrimLeft(allowedMACs, "{"), "}"), ",")
 	return nil
 }
 
