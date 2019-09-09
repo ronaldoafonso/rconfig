@@ -44,6 +44,29 @@ func TestBoxLoadConfig(t *testing.T) {
 	}
 }
 
+func TestBoxUpdateConfig(t *testing.T) {
+	box := Box{}
+	box.setBoxname("boxname")
+	box.SSID = "new ssid"
+	box.allowedMACs = []string{
+		"11:11:11:11:11:11",
+		"22:22:22:22:22:22",
+		"33:33:33:33:33:33",
+		"44:44:44:44:44:44",
+	}
+
+	err := box.updateConfig()
+	if err != nil {
+		t.Errorf("updateConfig: Got an error [%v].", err)
+	}
+
+	box.loadConfig()
+
+	if box.SSID != "new ssid" {
+		t.Errorf("updateConfig: Wrong SSID. Want: %v, got :%v.", "new ssid", box.SSID)
+	}
+}
+
 func TestGetRemoteSSID(t *testing.T) {
 	box := Box{}
 	box.setBoxname("boxname")

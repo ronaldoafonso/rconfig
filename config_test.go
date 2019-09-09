@@ -78,7 +78,7 @@ func TestConfigUpdateSSID(t *testing.T) {
 	}
 }
 
-func TestUpdateAllowedMacs(t *testing.T) {
+func TestConfigUpdateAllowedMacs(t *testing.T) {
 	allowedMACs := []string{
 		"11:11:11:11:11:11",
 		"22:22:22:22:22:22",

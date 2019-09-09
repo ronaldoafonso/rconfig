@@ -39,9 +39,9 @@ func (b *Box) setBoxname(boxname string) {
 	b.boxname = boxname
 }
 
-/* Load config from file. */
+/* Load config from database. */
 func (b *Box) loadConfig() error {
-	query := fmt.Sprintf("SELECT cfg.ssid, cfg.allowed_macs FROM configs cfg INNER JOIN boxes box USING(config_id) WHERE box.boxname = '%s';", b.boxname)
+	query := fmt.Sprintf("SELECT ssid, allowed_macs FROM boxes WHERE boxname = '%s';", b.boxname)
 	var SSID, allowedMACs string
 
 	err := rconfigDb.QueryRow(query).Scan(&SSID, &allowedMACs)
@@ -52,6 +52,16 @@ func (b *Box) loadConfig() error {
 	b.SSID = SSID
 	b.allowedMACs = strings.Split(strings.TrimRight(strings.TrimLeft(allowedMACs, "{"), "}"), ",")
 	return nil
+}
+
+/* Update box database config. */
+func (b *Box) updateConfig() error {
+	query := fmt.Sprintf("UPDATE boxes SET ssid = '%s', allowed_macs = '%s' WHERE boxname = '%s';",
+		b.SSID,
+		fmt.Sprintf("%s", b.allowedMACs),
+		b.boxname)
+	_, err := rconfigDb.Exec(query)
+	return err
 }
 
 /* Get remote box SSID */
