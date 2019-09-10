@@ -3,10 +3,14 @@
 
 package rconfig
 
+import (
+	"github.com/ronaldoafonso/rconfig/rmac"
+)
+
 // Config ... Configuration parameters for an OpenWrt box
 type Config struct {
 	SSID string
-	allowedMACs
+	rmac.AllowedMACs
 }
 
 /* Return false if other is different from config. */
@@ -15,12 +19,12 @@ func (config Config) isIgual(other Config) bool {
 		return false
 	}
 
-	if len(config.allowedMACs) != len(other.allowedMACs) {
+	if len(config.AllowedMACs) != len(other.AllowedMACs) {
 		return false
 	}
 
-	for i, value := range config.allowedMACs {
-		if value != other.allowedMACs[i] {
+	for i, value := range config.AllowedMACs {
+		if value != other.AllowedMACs[i] {
 			return false
 		}
 	}
@@ -33,7 +37,7 @@ func (config *Config) updateSSID(SSID string) {
 	config.SSID = SSID
 }
 
-/* Update field "allowedMACs" of Config structure */
-func (config *Config) updateAllowedMACs(allowedMACs []string) {
-	config.allowedMACs = allowedMACs
+/* Update field "AllowedMACs" of Config structure */
+func (config *Config) updateAllowedMACs(AllowedMACs []string) {
+	config.AllowedMACs = AllowedMACs
 }

@@ -1,7 +1,7 @@
 /* File: mac_test.go */
 /* Description: Test MAC operation */
 
-package rconfig
+package rmac
 
 import (
 	"fmt"
@@ -10,30 +10,30 @@ import (
 
 func TestMACAllowedMACsAsString(t *testing.T) {
 	type MACs struct {
-		allowedMACs
+		AllowedMACs
 		asString string
 	}
 
 	testMACs := []MACs{
 		MACs{
-			allowedMACs{},
+			AllowedMACs{},
 			"{}",
 		},
 		MACs{
-			allowedMACs{
+			AllowedMACs{
 				"11:11:11:11:11:11",
 			},
 			"{11:11:11:11:11:11}",
 		},
 		MACs{
-			allowedMACs{
+			AllowedMACs{
 				"11:11:11:11:11:11",
 				"22:22:22:22:22:22",
 			},
 			"{11:11:11:11:11:11,22:22:22:22:22:22}",
 		},
 		MACs{
-			allowedMACs{
+			AllowedMACs{
 				"11:11:11:11:11:11",
 				"22:22:22:22:22:22",
 				"33:33:33:33:33:33",
@@ -43,8 +43,8 @@ func TestMACAllowedMACsAsString(t *testing.T) {
 	}
 
 	for _, MAC := range testMACs {
-		if fmt.Sprintf("%s", MAC.allowedMACs) != MAC.asString {
-			t.Errorf("allowedMACAsString: Want: %v, got %v.", MAC.asString, fmt.Sprintf("%s", MAC.allowedMACs))
+		if fmt.Sprintf("%s", MAC.AllowedMACs) != MAC.asString {
+			t.Errorf("allowedMACAsString: Want: %v, got %v.", MAC.asString, fmt.Sprintf("%s", MAC.AllowedMACs))
 		}
 	}
 }

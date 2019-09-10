@@ -1,13 +1,14 @@
 /* File: box.go */
 /* Description: Operations on remote boxes. */
 
-package rconfig
+package rbox
 
 import (
 	"database/sql"
 	"fmt"
 	// PostgreSQL driver
 	_ "github.com/lib/pq"
+	"github.com/ronaldoafonso/rconfig/rconfig"
 	"log"
 	"os/exec"
 	"strings"
@@ -30,18 +31,13 @@ func init() {
 
 // Box ... An OpenWrt box struct
 type Box struct {
-	boxname string
-	Config
-}
-
-/* setBoxname: set the name of a box. */
-func (b *Box) setBoxname(boxname string) {
-	b.boxname = boxname
+	Boxname string
+	rconfig.Config
 }
 
 /* Load config from database. */
-func (b *Box) loadConfig() error {
-	query := fmt.Sprintf("SELECT ssid, allowed_macs FROM boxes WHERE boxname = '%s';", b.boxname)
+func (b *Box) LoadConfig() error {
+	query := fmt.Sprintf("SELECT ssid, allowed_macs FROM boxes WHERE boxname = '%s';", b.Boxname)
 	var SSID, allowedMACs string
 
 	err := rconfigDb.QueryRow(query).Scan(&SSID, &allowedMACs)
@@ -50,24 +46,24 @@ func (b *Box) loadConfig() error {
 	}
 
 	b.SSID = SSID
-	b.allowedMACs = strings.Split(strings.TrimRight(strings.TrimLeft(allowedMACs, "{"), "}"), ",")
+	b.AllowedMACs = strings.Split(strings.TrimRight(strings.TrimLeft(allowedMACs, "{"), "}"), ",")
 	return nil
 }
 
 /* Update box database config. */
-func (b *Box) updateConfig() error {
+func (b *Box) UpdateConfig() error {
 	query := fmt.Sprintf("UPDATE boxes SET ssid = '%s', allowed_macs = '%s' WHERE boxname = '%s';",
 		b.SSID,
-		fmt.Sprintf("%s", b.allowedMACs),
-		b.boxname)
+		fmt.Sprintf("%s", b.AllowedMACs),
+		b.Boxname)
 	_, err := rconfigDb.Exec(query)
 	return err
 }
 
 /* Get remote box SSID */
-func (b *Box) getRemoteSSID() error {
+func (b *Box) GetRemoteSSID() error {
 	uci := []string{
-		b.boxname,
+		b.Boxname,
 		"uci",
 		"-q",
 		"get",
@@ -84,11 +80,11 @@ func (b *Box) getRemoteSSID() error {
 }
 
 /* Set remote box SSID */
-func (b Box) setRemoteSSID() error {
+func (b Box) SetRemoteSSID() error {
 	SSID24 := fmt.Sprintf("wireless.@wifi-iface[0].ssid=%s", b.SSID)
 	SSID50 := fmt.Sprintf("wireless.@wifi-iface[1].ssid=%s", b.SSID)
 	uci := []string{
-		b.boxname,
+		b.Boxname,
 		"uci", "set", SSID24, "&&",
 		"uci", "set", SSID50, "&&",
 		"uci", "commit", "wireless", "&&",
@@ -99,9 +95,9 @@ func (b Box) setRemoteSSID() error {
 }
 
 /* Get remote box allowed MACs */
-func (b *Box) getRemoteAllowedMACs() error {
+func (b *Box) GetRemoteAllowedMACs() error {
 	uci := []string{
-		b.boxname,
+		b.Boxname,
 		"uci",
 		"-q",
 		"get",
@@ -113,22 +109,22 @@ func (b *Box) getRemoteAllowedMACs() error {
 		return err
 	}
 
-	b.allowedMACs = []string{}
+	b.AllowedMACs = []string{}
 	for _, MAC := range strings.Split(string(MACs[:len(MACs)-1]), " ") {
-		b.allowedMACs = append(b.allowedMACs, MAC)
+		b.AllowedMACs = append(b.AllowedMACs, MAC)
 	}
 
 	return nil
 }
 
 /* Set remote box allowed MACs */
-func (b Box) setRemoteAllowedMACs() error {
+func (b Box) SetRemoteAllowedMACs() error {
 	allowedMACs := "uci delete firewall.macs.entry && "
-	for _, MAC := range b.allowedMACs {
+	for _, MAC := range b.AllowedMACs {
 		allowedMACs += "uci add_list firewall.macs.entry='" + MAC + "' && "
 	}
 	allowedMACs += "uci commit firewall && "
-	uci := []string{b.boxname}
+	uci := []string{b.Boxname}
 
 	for _, value := range strings.Split(allowedMACs, " ") {
 		uci = append(uci, value)

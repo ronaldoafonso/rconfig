@@ -4,25 +4,24 @@
 package rconfig
 
 import (
+	"github.com/ronaldoafonso/rconfig/rmac"
 	"testing"
 )
 
-var ()
-
 func TestConfigIsIgual(t *testing.T) {
 	SSID := "ssid"
-	allowedMACs := []string{
+	allowedMACs := rmac.AllowedMACs{
 		"11:11:11:11:11:11",
 		"22:22:22:22:22:22",
 	}
 	config := Config{
 		SSID:        SSID,
-		allowedMACs: allowedMACs,
+		AllowedMACs: allowedMACs,
 	}
 
 	otherIgual := Config{
 		SSID:        SSID,
-		allowedMACs: allowedMACs,
+		AllowedMACs: allowedMACs,
 	}
 
 	if !config.isIgual(otherIgual) {
@@ -30,10 +29,10 @@ func TestConfigIsIgual(t *testing.T) {
 			"Config struct. config: %v, other: %v.", config, otherIgual)
 	}
 
-	for i := range config.allowedMACs {
-		if config.allowedMACs[i] != otherIgual.allowedMACs[i] {
+	for i := range config.AllowedMACs {
+		if config.AllowedMACs[i] != otherIgual.AllowedMACs[i] {
 			t.Errorf("ConfigisIgual returned false when compared to another igual"+
-				"Config struct(allowedMACs). config: %v, other %v.",
+				"Config struct(AllowedMACs). config: %v, other %v.",
 				config, otherIgual)
 		}
 	}
@@ -41,17 +40,17 @@ func TestConfigIsIgual(t *testing.T) {
 	otherDiff := []Config{
 		Config{
 			SSID:        "another ssid",
-			allowedMACs: allowedMACs,
+			AllowedMACs: allowedMACs,
 		},
 		Config{
 			SSID: SSID,
-			allowedMACs: []string{
+			AllowedMACs: rmac.AllowedMACs{
 				"33:33:33:33:33",
 			},
 		},
 		Config{
 			SSID: SSID,
-			allowedMACs: []string{
+			AllowedMACs: rmac.AllowedMACs{
 				"44:44:44:44:44",
 				"55:55:55:55:55:55",
 			},
@@ -79,17 +78,17 @@ func TestConfigUpdateSSID(t *testing.T) {
 }
 
 func TestConfigUpdateAllowedMacs(t *testing.T) {
-	allowedMACs := []string{
+	allowedMACs := rmac.AllowedMACs{
 		"11:11:11:11:11:11",
 		"22:22:22:22:22:22",
 	}
 	config := Config{}
 	config.updateAllowedMACs(allowedMACs)
 
-	for i := range config.allowedMACs {
-		if config.allowedMACs[i] != allowedMACs[i] {
-			t.Errorf("ConfigUpdateAllowedMACs didn't update field allowedMACs. "+
-				"Want: %v, got: %v.", allowedMACs, config.allowedMACs)
+	for i := range config.AllowedMACs {
+		if config.AllowedMACs[i] != allowedMACs[i] {
+			t.Errorf("ConfigUpdateAllowedMACs didn't update field AllowedMACs. "+
+				"Want: %v, got: %v.", allowedMACs, config.AllowedMACs)
 		}
 	}
 }

@@ -1,13 +1,13 @@
 /* File: mac.go */
 /* Description: MAC configuration for remote boxes. */
 
-package rconfig
+package rmac
 
-// allowedMACs ... MACs allowed internet access
-type allowedMACs []string
+// AllowedMACs ... MACs allowed internet access
+type AllowedMACs []string
 
-/* Return allowedMACs as a string */
-func (a allowedMACs) String() string {
+/* Return AllowedMACs as a string */
+func (a AllowedMACs) String() string {
 	macsAsStr := "{"
 	for i, v := range a {
 		if i == len(a)-1 {
