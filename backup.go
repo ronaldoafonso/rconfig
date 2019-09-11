@@ -18,12 +18,31 @@ type returnCode struct {
 }
 
 var (
-	returnCodes = make(chan returnCode)
-	wgBackup    sync.WaitGroup
-	wgResult    sync.WaitGroup
+	wgBackup sync.WaitGroup
+	wgResult sync.WaitGroup
 )
 
 func main() {
+	boxes := getBoxes()
+	returnedCodes := make(chan returnCode)
+
+	for _, box := range boxes {
+		wgBackup.Add(1)
+		go backup(box, returnedCodes)
+	}
+
+	wgResult.Add(1)
+	go showResults(returnedCodes)
+
+	wgBackup.Wait()
+	close(returnedCodes)
+
+	wgResult.Wait()
+	log.Println("Backup done.")
+}
+
+// getBoxes ... Get boxes name from db
+func getBoxes() map[string]rbox.Box {
 	connString := "user=rconfig dbname=rconfig password=rconfig " +
 		"host=rconfig_db sslmode=disable"
 	db, err := sql.Open("postgres", connString)
@@ -52,23 +71,11 @@ func main() {
 		}
 	}
 
-	for _, box := range boxes {
-		wgBackup.Add(1)
-		go backup(box)
-	}
-
-	wgResult.Add(1)
-	go showResults()
-
-	wgBackup.Wait()
-	close(returnCodes)
-
-	wgResult.Wait()
-	log.Println("Backup done.")
+	return boxes
 }
 
 // backup ... Backup a box configuration
-func backup(box rbox.Box) {
+func backup(box rbox.Box, retCodes chan<- returnCode) {
 	defer wgBackup.Done()
 
 	rc := returnCode{
@@ -86,18 +93,18 @@ func backup(box rbox.Box) {
 		rc.err = err3
 	}
 
-	returnCodes <- rc
+	retCodes <- rc
 }
 
 // showResults ... Show backup results
-func showResults() {
+func showResults(retCodes <-chan returnCode) {
 	defer wgResult.Done()
 
-	for rc := range returnCodes {
-        if rc.err != nil {
-            log.Printf("Box %v: error {%v}.\n", rc.boxname, rc.err)
-        } else {
-            log.Printf("Box %v: backup OK.\n", rc.boxname)
-        }
+	for rc := range retCodes {
+		if rc.err != nil {
+			log.Printf("Box %v: error {%v}.\n", rc.boxname, rc.err)
+		} else {
+			log.Printf("Box %v: backup OK.\n", rc.boxname)
+		}
 	}
 }
