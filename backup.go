@@ -9,6 +9,18 @@ import (
 	// PostgreSQL driver
 	_ "github.com/lib/pq"
 	"github.com/ronaldoafonso/rconfig/rbox"
+	"sync"
+)
+
+type returnCode struct {
+	boxname string
+	err     error
+}
+
+var (
+	returnCodes = make(chan returnCode)
+	wgBackup    sync.WaitGroup
+	wgResult    sync.WaitGroup
 )
 
 func main() {
@@ -40,30 +52,52 @@ func main() {
 		}
 	}
 
-	if box, ok := boxes["boxname"]; ok {
-		backup(box)
+	for _, box := range boxes {
+		wgBackup.Add(1)
+		go backup(box)
 	}
 
-	if box, ok := boxes["boxname1"]; ok {
-		backup(box)
-	}
+	wgResult.Add(1)
+	go showResults()
 
-	if box, ok := boxes["boxname2"]; ok {
-		backup(box)
-	}
+	wgBackup.Wait()
+	close(returnCodes)
+
+	wgResult.Wait()
+	log.Println("Backup done.")
 }
 
+// backup ... Backup a box configuration
 func backup(box rbox.Box) {
-	log.Printf("Doing %q.\n", box.Boxname)
-	if err := box.GetRemoteSSID(); err != nil {
-		log.Fatal(err)
+	defer wgBackup.Done()
+
+	rc := returnCode{
+		boxname: box.Boxname,
+		err:     nil,
 	}
 
-	if err := box.GetRemoteAllowedMACs(); err != nil {
-		log.Fatal(err)
+	log.Printf("Backing up %v.\n", rc.boxname)
+
+	if err1 := box.GetRemoteSSID(); err1 != nil {
+		rc.err = err1
+	} else if err2 := box.GetRemoteAllowedMACs(); err2 != nil {
+		rc.err = err2
+	} else if err3 := box.UpdateConfig(); err3 != nil {
+		rc.err = err3
 	}
 
-	if err := box.UpdateConfig(); err != nil {
-		log.Fatal(err)
+	returnCodes <- rc
+}
+
+// showResults ... Show backup results
+func showResults() {
+	defer wgResult.Done()
+
+	for rc := range returnCodes {
+        if rc.err != nil {
+            log.Printf("Box %v: error {%v}.\n", rc.boxname, rc.err)
+        } else {
+            log.Printf("Box %v: backup OK.\n", rc.boxname)
+        }
 	}
 }
