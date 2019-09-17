@@ -4,6 +4,7 @@
 package rbox
 
 import (
+	"github.com/ronaldoafonso/rconfig/rconfig"
 	"github.com/ronaldoafonso/rconfig/rmac"
 	"testing"
 )
@@ -11,38 +12,36 @@ import (
 func TestBoxLoadConfig(t *testing.T) {
 	box := Box{}
 	box.Boxname = "boxname"
-
 	err := box.LoadConfig()
 
 	if err != nil {
 		t.Errorf("LoadConfig: Got an error [%v].", err)
 	}
 
-	allowedMACs := rmac.AllowedMACs{
-		"11:11:11:11:11:11",
-		"22:22:22:22:22:22",
+	config := rconfig.Config{
+		SSID:      "ssid",
+		LeaseTime: "30m",
+		AllowedMACs: []string{
+			"11:11:11:11:11:11",
+			"22:22:22:22:22:22",
+		},
 	}
 
-	if len(box.AllowedMACs) != len(allowedMACs) {
-		t.Errorf("LoadConfig: Wrong length for AllowedMACs.")
-	}
-
-	for i := range box.AllowedMACs {
-		if box.AllowedMACs[i] != allowedMACs[i] {
-			t.Errorf("LoadConfig: Wrong MAC. Want: %v, got: %v.",
-				allowedMACs[i],
-				box.AllowedMACs[i])
-		}
+	if !box.Config.IsIgual(config) {
+		t.Errorf("LoadConfig: box.Config isn't what it's expected.")
+		t.Errorf("Want: %v, %v, %v\n", config.SSID, config.LeaseTime, config.AllowedMACs)
+		t.Errorf("Got: %v, %v, %v\n", box.Config.SSID, box.Config.LeaseTime, box.Config.AllowedMACs)
 	}
 }
 
 func TestBoxUpdateConfig(t *testing.T) {
 	box := Box{}
 	box.Boxname = "boxname"
-	box.SSID = "ssid"
+	box.SSID = "other ssid"
+	box.LeaseTime = "60m"
 	box.AllowedMACs = rmac.AllowedMACs{
-		"11:11:11:11:11:11",
-		"22:22:22:22:22:22",
+		"aa:aa:aa:aa:aa:aa",
+		"bb:bb:bb:bb:bb:bb",
 	}
 
 	err := box.UpdateConfig()
@@ -50,10 +49,14 @@ func TestBoxUpdateConfig(t *testing.T) {
 		t.Errorf("UpdateConfig: Got an error [%v].", err)
 	}
 
-	box.LoadConfig()
+	newBox := Box{}
+	newBox.Boxname = "boxname"
+	newBox.LoadConfig()
 
-	if box.SSID != "ssid" {
-		t.Errorf("UpdateConfig: Wrong SSID. Want: %v, got :%v.", "ssid", box.SSID)
+	if !box.Config.IsIgual(newBox.Config) {
+		t.Errorf("UpdateConfig: box.Config isn't what it's expected.")
+		t.Errorf("Want: %v, %v, %v\n", box.Config.SSID, box.Config.LeaseTime, box.Config.AllowedMACs)
+		t.Errorf("Got: %v, %v, %v\n", newBox.Config.SSID, newBox.Config.LeaseTime, newBox.Config.AllowedMACs)
 	}
 }
 
@@ -79,6 +82,31 @@ func TestSetRemoteSSID(t *testing.T) {
 
 	if err := box.SetRemoteSSID(); err != nil {
 		t.Errorf("SetRemoteSSID: Got an error [%v].", err)
+	}
+}
+
+func TestGetRemoteLeaseTime(t *testing.T) {
+	box := Box{}
+	box.Boxname = "boxname"
+	box.LoadConfig()
+	box.LeaseTime = "60m"
+
+	if err := box.GetRemoteLeaseTime(); err != nil {
+		t.Errorf("GetRemoteLeaseTime: Got an error [%v].", err)
+	}
+
+	if box.LeaseTime != "30m" {
+		t.Errorf("GetRemoteLeaseTime: Want: %v, got: %v.", "30m", box.LeaseTime)
+	}
+}
+
+func TestSetRemoteLeaseTime(t *testing.T) {
+	box := Box{}
+	box.Boxname = "boxname"
+	box.LoadConfig()
+
+	if err := box.SetRemoteLeaseTime(); err != nil {
+		t.Errorf("SetRemoteLeaseTime: Got an error [%v].", err)
 	}
 }
 

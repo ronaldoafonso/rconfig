@@ -37,23 +37,25 @@ type Box struct {
 
 /* Load config from database. */
 func (b *Box) LoadConfig() error {
-	query := fmt.Sprintf("SELECT ssid, allowed_macs FROM boxes WHERE boxname = '%s';", b.Boxname)
-	var SSID, allowedMACs string
+	query := fmt.Sprintf("SELECT ssid, lease_time, allowed_macs FROM boxes WHERE boxname = '%s';", b.Boxname)
+	var SSID, leaseTime, allowedMACs string
 
-	err := rconfigDb.QueryRow(query).Scan(&SSID, &allowedMACs)
+	err := rconfigDb.QueryRow(query).Scan(&SSID, &leaseTime, &allowedMACs)
 	if err != nil {
 		return err
 	}
 
 	b.SSID = SSID
+	b.LeaseTime = leaseTime
 	b.AllowedMACs = strings.Split(strings.TrimRight(strings.TrimLeft(allowedMACs, "{"), "}"), ",")
 	return nil
 }
 
 /* Update box database config. */
 func (b *Box) UpdateConfig() error {
-	query := fmt.Sprintf("UPDATE boxes SET ssid = '%s', allowed_macs = '%s' WHERE boxname = '%s';",
+	query := fmt.Sprintf("UPDATE boxes SET ssid = '%s', lease_time = '%s', allowed_macs = '%s' WHERE boxname = '%s';",
 		b.SSID,
+		b.LeaseTime,
 		fmt.Sprintf("%s", b.AllowedMACs),
 		b.Boxname)
 	_, err := rconfigDb.Exec(query)
@@ -89,6 +91,38 @@ func (b Box) SetRemoteSSID() error {
 		"uci", "set", SSID50, "&&",
 		"uci", "commit", "wireless", "&&",
 		"/etc/init.d/network", "reload",
+	}
+
+	return exec.Command("ssh", uci...).Run()
+}
+
+/* Get remote box DHCP lease time */
+func (b *Box) GetRemoteLeaseTime() error {
+	uci := []string{
+		b.Boxname,
+		"uci",
+		"-q",
+		"get",
+		"dhcp.lan.leasetime",
+	}
+
+	leaseTime, err := exec.Command("ssh", uci...).Output()
+	if err != nil {
+		return err
+	}
+
+	b.LeaseTime = string(leaseTime[:len(leaseTime)-1])
+	return nil
+}
+
+/* Set remote box DHCP lease time */
+func (b Box) SetRemoteLeaseTime() error {
+	leaseTime := fmt.Sprintf("dhcp.lan.leasetime=%s", b.LeaseTime)
+	uci := []string{
+		b.Boxname,
+		"uci", "set", leaseTime, "&&",
+		"uci", "commit", "dhcp", "&&",
+		"/etc/init.d/dnsmasq", "reload",
 	}
 
 	return exec.Command("ssh", uci...).Run()

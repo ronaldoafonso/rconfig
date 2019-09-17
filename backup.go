@@ -87,10 +87,12 @@ func backup(box rbox.Box, retCodes chan<- returnCode) {
 
 	if err1 := box.GetRemoteSSID(); err1 != nil {
 		rc.err = err1
-	} else if err2 := box.GetRemoteAllowedMACs(); err2 != nil {
+	} else if err2 := box.GetRemoteLeaseTime(); err2 != nil {
 		rc.err = err2
-	} else if err3 := box.UpdateConfig(); err3 != nil {
+	} else if err3 := box.GetRemoteAllowedMACs(); err3 != nil {
 		rc.err = err3
+	} else if err4 := box.UpdateConfig(); err4 != nil {
+		rc.err = err4
 	}
 
 	retCodes <- rc

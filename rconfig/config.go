@@ -9,13 +9,18 @@ import (
 
 // Config ... Configuration parameters for an OpenWrt box
 type Config struct {
-	SSID string
+	SSID      string
+	LeaseTime string
 	rmac.AllowedMACs
 }
 
 /* Return false if other is different from config. */
-func (config Config) isIgual(other Config) bool {
+func (config Config) IsIgual(other Config) bool {
 	if config.SSID != other.SSID {
+		return false
+	}
+
+	if config.LeaseTime != other.LeaseTime {
 		return false
 	}
 
@@ -35,6 +40,11 @@ func (config Config) isIgual(other Config) bool {
 /* Update field "SSID" of Config structure */
 func (config *Config) updateSSID(SSID string) {
 	config.SSID = SSID
+}
+
+/* Update field "LeaseTime" of Config structure */
+func (config *Config) updateLeaseTime(leaseTime string) {
+	config.LeaseTime = leaseTime
 }
 
 /* Update field "AllowedMACs" of Config structure */
