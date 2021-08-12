@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/ronaldoafonso/rconfig/rbox"
 	"github.com/spf13/cobra"
-	"sync"
 )
 
 func init() {
@@ -17,17 +17,28 @@ var getCmd = &cobra.Command{
 	Run:   get,
 }
 
+type Result struct {
+	boxname string
+	err     error
+}
+
 func get(cmd *cobra.Command, boxnames []string) {
-	wg := sync.WaitGroup{}
-	wg.Add(len(boxnames))
+	results := make(chan Result)
 
 	for _, boxname := range boxnames {
 		go func(boxname string) {
-			defer wg.Done()
 			b := rbox.NewRBox(boxname)
-			b.GetConfig()
+			err := b.GetConfig()
+			results <- Result{boxname, err}
 		}(boxname)
 	}
 
-	wg.Wait()
+    for i := 0; i < len(boxnames); i++ {
+        result := <-results
+        if result.err != nil {
+            fmt.Printf("%v box: %v.\n", result.boxname, result.err)
+        } else {
+            fmt.Printf("%v box: OK.\n", result.boxname)
+        }
+	}
 }
