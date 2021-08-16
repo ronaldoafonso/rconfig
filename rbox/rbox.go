@@ -48,6 +48,25 @@ func (b *RemoteBox) GetSSIDs() ([]string, error) {
 	return SSIDs, nil
 }
 
+func (b *RemoteBox) SetSSIDs(SSID string) error {
+	scp := []string{
+		"./uci/set_ssid.sh",
+		b.boxname + ":/tmp",
+	}
+	_, err := exec.Command("scp", scp...).Output()
+	if err != nil {
+		return err
+	}
+
+	ssh := []string{
+		b.boxname,
+		"/tmp/set_ssid.sh",
+		SSID,
+	}
+	_, err = exec.Command("ssh", ssh...).Output()
+	return err
+}
+
 func (b *RemoteBox) GetMACs() ([]string, error) {
 	cmd := exec.Command("ssh", b.boxname, "uci get firewall.macs.entry")
 	cmdMACs, err := cmd.Output()

@@ -58,6 +58,24 @@ func TestRBoxGetSSIDs(t *testing.T) {
 	}
 }
 
+func TestRBoxSetConfig(t *testing.T) {
+	boxname := "788a20298f81.z3n.com.br"
+	b := NewRBox(boxname)
+
+	SSID := "z3n"
+	err := b.SetSSIDs(SSID)
+	if err != nil {
+		t.Fatalf("Error setting SSIDs: %v.", err)
+	}
+
+	SSIDs, err := b.GetSSIDs()
+	for _, SSID := range SSIDs {
+		if SSID != "z3n" {
+			t.Fatalf("Error setting SSID. Want z3n, got %v.", SSID)
+		}
+	}
+}
+
 func TestRBoxGetMACs(t *testing.T) {
 	boxname := "788a20298f81.z3n.com.br"
 	b := NewRBox(boxname)
