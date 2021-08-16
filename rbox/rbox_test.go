@@ -58,7 +58,7 @@ func TestRBoxGetSSIDs(t *testing.T) {
 	}
 }
 
-func TestRBoxSetConfig(t *testing.T) {
+func TestRBoxSetSSID(t *testing.T) {
 	boxname := "788a20298f81.z3n.com.br"
 	b := NewRBox(boxname)
 
@@ -85,16 +85,39 @@ func TestRBoxGetMACs(t *testing.T) {
 		t.Fatalf("Error getting MACs: %v.", err)
 	}
 
-	tests := []struct {
-		want string
-	}{
-		{"11:11:11:11:11:11"},
-		{"11:11:11:11:11:22"},
-		{"11:11:11:11:11:33"},
+	want := []string{
+		"11:11:11:11:11:11",
+		"11:11:11:11:11:22",
+		"11:11:11:11:11:33",
 	}
-	for i, test := range tests {
-		if test.want != MACs[i] {
-			t.Fatalf("Error getting MAC. Want: %v, got: %v.", test.want, MACs[i])
+	for i, MAC := range MACs {
+		if want[i] != MAC {
+			t.Fatalf("Error getting MAC. Want: %v, got: %v.", want[i], MAC)
+		}
+	}
+}
+
+func TestRBoxSetMACs(t *testing.T) {
+	boxname := "788a20298f81.z3n.com.br"
+	b := NewRBox(boxname)
+
+	tests := []struct {
+		given string
+		want  []string
+	}{
+		{"11:11:11:11:11:11", []string{"11:11:11:11:11:11"}},
+		{"11:11:11:11:11:11 11:11:11:11:11:22", []string{"11:11:11:11:11:11", "11:11:11:11:11:22"}},
+		{"11:11:11:11:11:11 11:11:11:11:11:22 11:11:11:11:11:33", []string{"11:11:11:11:11:11", "11:11:11:11:11:22", "11:11:11:11:11:33"}},
+	}
+	for _, test := range tests {
+		if err := b.SetMACs(test.given); err != nil {
+			t.Fatalf("Error setting MACs: %v.", err)
+		}
+		MACs, _ := b.GetMACs()
+		for i, MAC := range MACs {
+			if test.want[i] != MAC {
+				t.Fatalf("Error setting MACs. Want %v, got %v.", test.want[i], MAC)
+			}
 		}
 	}
 }

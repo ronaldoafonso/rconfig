@@ -9,10 +9,12 @@ import (
 func init() {
 	rootCmd.AddCommand(setCmd)
 	setCmd.Flags().StringVarP(&SSID, "ssid", "s", "z3n", "SSID for box")
+	setCmd.Flags().StringVarP(&MACs, "macs", "m", "", "Allowed MACs for box")
 }
 
 var (
 	SSID   string
+	MACs   string
 	setCmd = &cobra.Command{
 		Use:   "set BOXNAME [BOXNAMES...]",
 		Short: "Set configuration of remotebox(es)",
@@ -32,7 +34,7 @@ func set(cmd *cobra.Command, boxnames []string) {
 	for _, boxname := range boxnames {
 		go func(boxname string) {
 			b := rbox.NewRBox(boxname)
-			err := b.SetSSIDs(SSID)
+			err := b.SetMACs(MACs)
 			results <- setResult{boxname, err}
 		}(boxname)
 	}

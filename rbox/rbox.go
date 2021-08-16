@@ -77,6 +77,25 @@ func (b *RemoteBox) GetMACs() ([]string, error) {
 	return MACs, nil
 }
 
+func (b *RemoteBox) SetMACs(MACs string) error {
+	scp := []string{
+		"./uci/set_ipset_macs.sh",
+		b.boxname + ":/tmp",
+	}
+	_, err := exec.Command("scp", scp...).Output()
+	if err != nil {
+		return err
+	}
+
+	ssh := []string{
+		b.boxname,
+		"/tmp/set_ipset_macs.sh",
+		MACs,
+	}
+	_, err = exec.Command("ssh", ssh...).Output()
+	return err
+}
+
 func NewRBox(boxname string) RemoteBox {
 	return RemoteBox{
 		boxname: boxname,
