@@ -48,6 +48,16 @@ func (b *RemoteBox) GetSSIDs() ([]string, error) {
 	return SSIDs, nil
 }
 
+func (b *RemoteBox) GetMACs() ([]string, error) {
+	cmd := exec.Command("ssh", b.boxname, "uci get firewall.macs.entry")
+	cmdMACs, err := cmd.Output()
+	if err != nil {
+		return []string{}, err
+	}
+	MACs := strings.Split(strings.Trim(string(cmdMACs), "\n"), " ")
+	return MACs, nil
+}
+
 func NewRBox(boxname string) RemoteBox {
 	return RemoteBox{
 		boxname: boxname,
