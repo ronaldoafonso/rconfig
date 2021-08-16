@@ -42,13 +42,13 @@ func TestRBoxGetConfig(t *testing.T) {
 	}
 }
 
-func TestRBoxGetSSID(t *testing.T) {
+func TestRBoxGetSSIDs(t *testing.T) {
 	boxname := "788a20298f81.z3n.com.br"
 	b := NewRBox(boxname)
 
 	SSIDs, err := b.GetSSIDs()
 	if err != nil {
-		t.Fatalf("Error getting SSID: %v.", err)
+		t.Fatalf("Error getting SSIDs: %v.", err)
 	}
 
 	for _, SSID := range SSIDs {
