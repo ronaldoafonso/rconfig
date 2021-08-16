@@ -23,14 +23,14 @@ var (
 	}
 )
 
-type Result struct {
+type getResult struct {
 	boxname string
 	err     error
 	info    string
 }
 
 func get(cmd *cobra.Command, boxnames []string) {
-	results := make(chan Result)
+	results := make(chan getResult)
 
 	for _, boxname := range boxnames {
 		go func(boxname string) {
@@ -52,7 +52,7 @@ func get(cmd *cobra.Command, boxnames []string) {
 			default:
 				log.Fatal("Unsuported field.")
 			}
-			results <- Result{boxname, err, info}
+			results <- getResult{boxname, err, info}
 		}(boxname)
 	}
 
