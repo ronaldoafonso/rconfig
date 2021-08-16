@@ -45,6 +45,10 @@ func get(cmd *cobra.Command, boxnames []string) {
 				SSIDs := []string{}
 				SSIDs, err = b.GetSSIDs()
 				info = strings.Join(SSIDs, " ")
+			case "macs":
+				MACs := []string{}
+				MACs, err = b.GetMACs()
+				info = strings.Join(MACs, " ")
 			default:
 				log.Fatal("Unsuported field.")
 			}
